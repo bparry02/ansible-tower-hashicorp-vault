@@ -13,6 +13,10 @@ to the git project directory
 
 == Install and Start Hashicorp Vault
 
+NOTE: Follow instructions from the
+https://www.vaultproject.io/intro/getting-started/install.html[Vault Getting Started Guide]
+if necessary.
+
 . `vagrant up`
 . `/vagrant/install-vault.sh`
 . `vault -autocomplete-install`
@@ -98,6 +102,18 @@ env:
 .. Token: [TOKEN]
 . Save
 
+== Add an Inventory for the vagrant target hosts
+
+. Inventories > Add
+* Name: `vagrant`
+* Hosts > Add Host
+** Host-Name: host-1
+** Save
+* Hosts > Add Host
+** Host-Name: host-2
+** Save
+. Save
+
 == Add sample project
 
 . Projects > Add
@@ -112,7 +128,7 @@ env:
 . Templates > Add > Job Template
 * Name: debug vault
 * Job Type: Run
-* Inventory: [inventory]
+* Inventory: vagrant
 * Project: tower-hashicorp-vault
 * Playbook: debug-tower.yml
 * Credential: Machine, Local Hashicorp Vault
