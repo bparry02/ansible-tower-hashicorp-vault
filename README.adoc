@@ -1,0 +1,143 @@
+= ansible-tower-hashicorp-vault
+
+A quick demo of Ansible Tower integration with Hashicorp Vault.
+Based on the tutorial on the
+https://www.ansible.com/blog/ansible-tower-feature-spotlight-custom-credentials[Ansible Blog].
+
+== Requirements
+
+. Vagrant 2.1.1
+. `vagrant plugin install vagrant-hostmanager`
+. Download Vault 0.10.1 from the https://www.vaultproject.io/downloads.html[download page]
+to the git project directory
+
+== Install and Start Hashicorp Vault
+
+. `vagrant up`
+. `/vagrant/install-vault.sh`
+. `vault -autocomplete-install`
+. `vault server -dev`
+. Save the Unseal Key and Root Token
+. Leave the server running and open a new terminal
+
+== Setup Ansible + Hashicorp Vault Integration
+
+. Install pip
++
+----
+sudo yum install python-pip
+----
+. Install required python libraries for Hashicorp Vault integration
++
+----
+sudo pip install hvac jmespath
+----
+. Restart Tower if applicable
+
+== Populate Hashicorp Vault
+
+NOTE: Make sure the vault binary is on your `PATH`
+
+----
+vault kv put secret/host-1 first_line=vault_sensitive_1 second_line=vault_sensitive_2
+vault kv put secret/host-2 first_line=VAULT_some_sensitive_1 second_line=VAULT_some_other_sensitive_2
+----
+
+== Run playbook with normal ansible
+
+. Clone the repo: `git clone https://github.com/bparry02/ansible-tower-hashicorp-vault.git`
+. Run the playbook:
++
+----
+echo -e "host-1\nhost-2" > inventory
+ansible-playbook apache.yml -i inventory -b
+ansible-playbook debug.yml -i inventory -e vault_token=[TOKEN]
+ansible-playbook index_html_create.yml -i inventory -e vault_token=[TOKEN] -b
+----
+. Verify with curl:
++
+----
+$ curl http://host-2
+<body>
+<h1>Apache is running fine</h1>
+<h1>This is field "First Line": VAULT_some_sensitive_1</h1>
+<h1>This is field "Second Line": VAULT_some_other_sensitive_2</h1>
+</body>
+----
+
+== Create custom credential type in Ansible Tower for Hashicorp Vault
+
+. Settings > Credential Types > Add
++
+.Input Configuration
+----
+fields:
+  - type: string
+    id: vault_server_url
+    label: URL to Vault Server
+  - type: string
+    id: vault_token
+    label: Vault Token
+    secret: true
+required:
+  - vault_server_url
+  - vault_token
+----
++
+.Injector Configuration
+----
+env:
+  VAULT_ADDR: '{{ vault_server_url }}'
+  VAULT_TOKEN: '{{ vault_token }}'
+----
+. Save
+. Settings > Credentials > Add
+.. Name: Local Hashicorp Vault
+.. Credential Type: Hashicorp Vault
+.. URL: http://127.0.0.1:8200
+.. Token: [TOKEN]
+. Save
+
+== Add sample project
+
+. Projects > Add
+* Name: tower-hashicorp-vault
+* SCM Type: Git
+* SCM URL: https://github.com/bparry02/ansible-tower-hashicorp-vault.git
+* SCM Credential: [git credential if required]
+. Save
+
+== Create a job that tests Hashicorp Vault configuration
+
+. Templates > Add > Job Template
+* Name: debug vault
+* Job Type: Run
+* Inventory: [inventory]
+* Project: tower-hashicorp-vault
+* Playbook: debug-tower.yml
+* Credential: Machine, Local Hashicorp Vault
+. Run the Template
++
+----
+PLAY [Check Hashicorp Vault values] ********************************************21:25:06
+TASK [Gathering Facts] *********************************************************21:25:06
+ok: [host-1]
+ok: [host-2]
+TASK [check host values for first_line] ****************************************21:25:09
+ok: [host-2] => {
+    "msg": "First line is: VAULT_some_sensitive_1"
+}
+ok: [host-1] => {
+    "msg": "First line is: vault_sensitive_1"
+}
+TASK [check host values for second_line] ***************************************21:25:09
+ok: [host-2] => {
+    "msg": "Second line is: VAULT_some_other_sensitive_2"
+}
+ok: [host-1] => {
+    "msg": "Second line is: vault_sensitive_2"
+}
+PLAY RECAP *********************************************************************21:25:09
+host-1                     : ok=3    changed=0    unreachable=0    failed=0   
+host-2                     : ok=3    changed=0    unreachable=0    failed=0 
+----
