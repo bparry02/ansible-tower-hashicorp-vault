@@ -36,7 +36,7 @@ sudo yum install python-pip
 ----
 sudo pip install hvac jmespath
 ----
-. Restart Tower if applicable
+. Restart Tower
 
 == Populate Hashicorp Vault
 
