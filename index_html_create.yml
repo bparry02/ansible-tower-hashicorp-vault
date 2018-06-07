@@ -1,0 +1,16 @@
+---
+- name: Create index.html from template
+  hosts: all
+  vars:
+    - key_data: "{{ lookup('hashi_vault', 'secret=secret/data/{{ ansible_fqdn }}: token={{ vault_token | mandatory }}')}}"
+    - first_line: "{{ key_data|json_query('data.first_line') }}"
+    - second_line: "{{ key_data|json_query('data.second_line') }}"
+
+  tasks:
+  - name: Create index.html
+    template:
+      src: index.j2
+      dest: /var/www/html/index.html
+      owner: root
+      group: root
+      mode: 0644

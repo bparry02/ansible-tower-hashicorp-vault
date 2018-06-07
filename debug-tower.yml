@@ -1,0 +1,13 @@
+---
+- name: Check Hashicorp Vault values
+  hosts: all
+  vars:
+    - key_data: "{{ lookup('hashi_vault', 'secret=secret/data/{{ ansible_fqdn }}:')}}"
+
+  tasks:
+  - name: check host values for first_line
+    debug:
+      msg: "First line is: {{ key_data|json_query('data.first_line') }}"
+  - name: check host values for second_line
+    debug:
+      msg: "Second line is: {{ key_data|json_query('data.second_line') }}"
