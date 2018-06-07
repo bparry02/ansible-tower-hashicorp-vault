@@ -119,25 +119,25 @@ env:
 . Run the Template
 +
 ----
-PLAY [Check Hashicorp Vault values] ********************************************21:25:06
-TASK [Gathering Facts] *********************************************************21:25:06
+PLAY [Check Hashicorp Vault values] ********************************************
+TASK [Gathering Facts] *********************************************************
 ok: [host-1]
 ok: [host-2]
-TASK [check host values for first_line] ****************************************21:25:09
+TASK [check host values for first_line] ****************************************
 ok: [host-2] => {
     "msg": "First line is: VAULT_some_sensitive_1"
 }
 ok: [host-1] => {
     "msg": "First line is: vault_sensitive_1"
 }
-TASK [check host values for second_line] ***************************************21:25:09
+TASK [check host values for second_line] ***************************************
 ok: [host-2] => {
     "msg": "Second line is: VAULT_some_other_sensitive_2"
 }
 ok: [host-1] => {
     "msg": "Second line is: vault_sensitive_2"
 }
-PLAY RECAP *********************************************************************21:25:09
+PLAY RECAP *********************************************************************
 host-1                     : ok=3    changed=0    unreachable=0    failed=0   
 host-2                     : ok=3    changed=0    unreachable=0    failed=0 
 ----
