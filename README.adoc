@@ -11,6 +11,8 @@ https://www.ansible.com/blog/ansible-tower-feature-spotlight-custom-credentials[
 . Download Vault 0.10.1 from the https://www.vaultproject.io/downloads.html[download page]
 to the git project directory
 
+The Ansible Tower Vagrant Box 3.2.5 with Ansible 2.5.2 was used to create this demo.
+
 == Install and Start Hashicorp Vault
 
 NOTE: Follow instructions from the
@@ -18,6 +20,7 @@ https://www.vaultproject.io/intro/getting-started/install.html[Vault Getting Sta
 if necessary.
 
 . `vagrant up`
+. `vagrant ssh tower`
 . `/vagrant/install-vault.sh`
 . `vault -autocomplete-install`
 . `vault server -dev`
@@ -42,6 +45,13 @@ sudo pip install hvac jmespath
 
 NOTE: Make sure the vault binary is on your `PATH`
 
+. Export the `VAULT_ADDR` variable that was printed when you started vault in dev mode:
++
+----
+export VAULT_ADDR='http://127.0.0.1:8200'
+----
+. Add data to vault, using the inventory host name as the key:
++
 ----
 vault kv put secret/host-1 first_line=vault_sensitive_1 second_line=vault_sensitive_2
 vault kv put secret/host-2 first_line=VAULT_some_sensitive_1 second_line=VAULT_some_other_sensitive_2
